@@ -1,22 +1,31 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <sys/stat.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <string.h>
 
-#define BUFSIZE 256
+#define FILENAME_SIZE 256
+#define BUFFER_SIZE 1024
+#define FAIL -1
 
-// This program prints the size of a specified file in bytes
-int main(int argc, char** argv) {
-    if (argc != 2) {
-        fprintf(stderr, "Please provide the address of a file as an input.\n");
-        return -1;
+int writeDataFromSocketToFile(char *host, int port)
+{
+    char filename[FILENAME_SIZE];
+    char buffer[BUFFER_SIZE];
+    int socket = openSocketConnection(host, port);
+    
+    if (socket < 0) {
+        printf("Unable to open socket connection");
+        return(FAIL);
     }
-
-    struct stat st;
-    if (stat(argv[1], &st) != 0) {
-        fprintf(stderr, "Error: file doesn't exist or is not accessible.\n");
-        return -1;
+    if (getNextMessage(socket, filename, FILENAME_SIZE) > 0) {
+        if (openFileToWrite(filename) > 0) {
+            while (getNextMessage(socket, buffer, BUFFER_SIZE) > 0){
+                if (!(writeToFile(buffer) > 0))
+                    break;
+            }
+        }
+        closeFile();
     }
-
-    printf("%lld\n", (long long)st.st_size);
-    return 0;
+    closeSocket(socket);
 }
