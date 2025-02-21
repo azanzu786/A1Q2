@@ -1,21 +1,23 @@
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <sys/stat.h>
 
-#define BUFFSIZE 256
-    
-int read_file(const char *filename) {
-    FILE* ptr = fopen(filename, "r");
-    
-    if (ptr == NULL) {
-        printf("File cannot be opened.\n");
-        return(-1);
+#define BUFSIZE 256
+
+// This program prints the size of a specified file in bytes
+int main(int argc, char** argv) {
+    if (argc != 2) {
+        fprintf(stderr, "Please provide the address of a file as an input.\n");
+        return -1;
     }
-    
-    char buff[BUFFSIZE];
-    
-    while (fgets(buff, BUFFSIZE, ptr) != NULL) {
-        printf("%s", buff);
+
+    struct stat st;
+    if (stat(argv[1], &st) != 0) {
+        fprintf(stderr, "Error: file doesn't exist or is not accessible.\n");
+        return -1;
     }
-        
-    return 0; 
+
+    printf("%lld\n", (long long)st.st_size);
+    return 0;
 }
+
